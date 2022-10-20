@@ -1,4 +1,4 @@
-package main
+package jago
 
 import (
 	"fmt"
