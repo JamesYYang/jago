@@ -9,7 +9,7 @@ import (
 type Jago struct {
 }
 
-func NewJago() *Jago {
+func New() *Jago {
 	return &Jago{}
 }
 
