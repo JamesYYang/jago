@@ -46,7 +46,6 @@ func (j *Jago) Delete(url string, handler HandlerFunc) {
 }
 
 func (j *Jago) findRoute(request *http.Request, c Context) {
-	// uri 和 method 全部转换为大写，保证大小写不敏感
 	uri := request.URL.Path
 	method := request.Method
 

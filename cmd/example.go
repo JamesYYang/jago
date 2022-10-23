@@ -20,10 +20,8 @@ func main() {
 	jago.Get("/users/:id/report/download", TestHandler)
 	jago.Get("/users/*", TestHandler)
 	server := &http.Server{
-		// 自定义的请求核心处理函数
 		Handler: jago,
-		// 请求监听地址
-		Addr: ":8080",
+		Addr:    ":8080",
 	}
 
 	log.Fatal(server.ListenAndServe())
