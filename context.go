@@ -5,7 +5,9 @@ import "net/http"
 type (
 	Context interface {
 		Request() *http.Request
-
+		Handler() HandlerFunc
+		Path() string
+		Param(name string) string
 		String(code int, s string) error
 	}
 
@@ -13,6 +15,9 @@ type (
 		request        *http.Request
 		responseWriter http.ResponseWriter
 		j              *Jago
+		path           string
+		pnames         map[string]string
+		handler        HandlerFunc
 	}
 )
 
@@ -21,6 +26,18 @@ func (c *context) writeContentType(value string) {
 	if header.Get(HeaderContentType) == "" {
 		header.Set(HeaderContentType, value)
 	}
+}
+
+func (c *context) Param(name string) string {
+	return c.pnames[name]
+}
+
+func (c *context) Path() string {
+	return c.path
+}
+
+func (c *context) Handler() HandlerFunc {
+	return c.handler
 }
 
 func (c *context) Request() *http.Request {

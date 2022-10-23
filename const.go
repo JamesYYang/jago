@@ -106,6 +106,8 @@ const (
 	HeaderXCSRFToken                      = "X-CSRF-Token"
 	HeaderReferrerPolicy                  = "Referrer-Policy"
 
+	HttpMethodAny = "ANY"
+
 	Version = "0.0.1"
 	// http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=Jago
 	banner = ` 
