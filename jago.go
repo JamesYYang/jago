@@ -29,20 +29,49 @@ func (j *Jago) NewContext(r *http.Request, w http.ResponseWriter) Context {
 	}
 }
 
-func (j *Jago) Get(url string, handler HandlerFunc) {
-	j.router.add(http.MethodGet, url, handler)
+func (j *Jago) Connect(path string, handler HandlerFunc) {
+	j.Add(http.MethodConnect, path, handler)
 }
 
-func (j *Jago) Post(url string, handler HandlerFunc) {
-	j.router.add(http.MethodPost, url, handler)
+func (j *Jago) Head(path string, handler HandlerFunc) {
+	j.Add(http.MethodHead, path, handler)
 }
 
-func (j *Jago) Put(url string, handler HandlerFunc) {
-	j.router.add(http.MethodPut, url, handler)
+func (j *Jago) Options(path string, handler HandlerFunc) {
+	j.Add(http.MethodOptions, path, handler)
 }
 
-func (j *Jago) Delete(url string, handler HandlerFunc) {
-	j.router.add(http.MethodDelete, url, handler)
+func (j *Jago) Patch(path string, handler HandlerFunc) {
+	j.Add(http.MethodPatch, path, handler)
+}
+
+func (j *Jago) Trace(path string, handler HandlerFunc) {
+	j.Add(http.MethodTrace, path, handler)
+}
+
+func (j *Jago) Get(path string, handler HandlerFunc) {
+	j.Add(http.MethodGet, path, handler)
+}
+
+func (j *Jago) Post(path string, handler HandlerFunc) {
+	j.Add(http.MethodPost, path, handler)
+}
+
+func (j *Jago) Put(path string, handler HandlerFunc) {
+	j.Add(http.MethodPut, path, handler)
+}
+
+func (j *Jago) Delete(path string, handler HandlerFunc) {
+	j.Add(http.MethodDelete, path, handler)
+}
+
+func (j *Jago) Group(prefix string) (g *Group) {
+	g = &Group{prefix: prefix, j: j}
+	return g
+}
+
+func (j *Jago) Add(method, path string, handler HandlerFunc) {
+	j.router.add(method, path, handler)
 }
 
 func (j *Jago) findRoute(request *http.Request, c Context) {
