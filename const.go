@@ -46,6 +46,8 @@ const (
 	REPORT = "REPORT"
 	// RouteNotFound is special method type for routes handling "route not found" (404) cases
 	RouteNotFound = "echo_route_not_found"
+
+	defaultIndent = "  "
 )
 
 // Headers
@@ -119,4 +121,23 @@ const (
 Simple Go Web Framework
 Version %s
 `
+)
+
+var (
+	ErrUnsupportedMediaType        = NewHTTPError(http.StatusUnsupportedMediaType)
+	ErrNotFound                    = NewHTTPError(http.StatusNotFound)
+	ErrUnauthorized                = NewHTTPError(http.StatusUnauthorized)
+	ErrForbidden                   = NewHTTPError(http.StatusForbidden)
+	ErrMethodNotAllowed            = NewHTTPError(http.StatusMethodNotAllowed)
+	ErrStatusRequestEntityTooLarge = NewHTTPError(http.StatusRequestEntityTooLarge)
+	ErrTooManyRequests             = NewHTTPError(http.StatusTooManyRequests)
+	ErrBadRequest                  = NewHTTPError(http.StatusBadRequest)
+	ErrBadGateway                  = NewHTTPError(http.StatusBadGateway)
+	ErrInternalServerError         = NewHTTPError(http.StatusInternalServerError)
+	ErrRequestTimeout              = NewHTTPError(http.StatusRequestTimeout)
+	ErrServiceUnavailable          = NewHTTPError(http.StatusServiceUnavailable)
+
+	NotFoundHandler = func(c Context) error {
+		return ErrNotFound
+	}
 )

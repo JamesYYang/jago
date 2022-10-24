@@ -8,22 +8,30 @@ import (
 	"github.com/JamesYYang/jago"
 )
 
+type (
+	Employee struct {
+		Name string `json:"Name"`
+		Age  int    `json:"Age"`
+		ID   string `json:"ID"`
+	}
+)
+
 // /users/new
 // /users/:id
 // /users/:id/address/:address
 // /users/:id/report/download
 func main() {
 	jago := jago.New()
-	g := jago.Group("/users")
-	g.Get("/new", TestHandler)
-	g.Get("/:id", TestHandler)
+	g := jago.Group("/users", middlewareOne)
+	g.Get("/new", middlewareSingle, TestHandler)
+	g.Get("/:id", QuerySingleEmployee)
 	g.Get("/:id/address/:address", TestHandler)
 	g.Get("/:id/report/download", TestHandler)
 	g.Get("/*", TestHandler)
 	g.Get("/info/*", TestHandler)
 
-	gOrder := jago.Group("/orders")
-	gOrder.Get("/new", TestHandler)
+	gOrder := jago.Group("/orders", middlewareTwo)
+	gOrder.Get("/new", middlewareSingle, TestHandler)
 	gOrder.Get("/:id", TestHandler)
 	gOrder.Get("/:id/items/:item-number", TestHandler)
 	gOrder.Get("/:id/report/download", TestHandler)
@@ -45,4 +53,28 @@ func TestHandler(c jago.Context) error {
 	result += fmt.Sprintf("params address: %s \n", c.Param("address"))
 	result += fmt.Sprintf("params item-number: %s \n", c.Param("item-number"))
 	return c.String(http.StatusOK, result)
+}
+
+func middlewareOne(c jago.Context) error {
+	log.Printf("this is first middleware")
+	return c.Next()
+}
+
+func middlewareTwo(c jago.Context) error {
+	log.Printf("this is second middleware")
+	return c.Next()
+}
+
+func middlewareSingle(c jago.Context) error {
+	log.Printf("this is single middleware")
+	return c.Next()
+}
+
+func QuerySingleEmployee(c jago.Context) error {
+	e1 := Employee{
+		Name: "Jago",
+		Age:  18,
+		ID:   "Jago-001",
+	}
+	return c.JSON(http.StatusOK, e1)
 }

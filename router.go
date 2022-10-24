@@ -17,7 +17,7 @@ type (
 		variableArgsCount int
 		hasWildcard       bool
 		method            string
-		handler           HandlerFunc
+		handlers          []HandlerFunc
 	}
 )
 
@@ -33,8 +33,8 @@ func newRouter() *Router {
 	return r
 }
 
-func (r *Router) add(method, path string, h HandlerFunc) {
-	n := newNode(method, path, h)
+func (r *Router) add(method, path string, handlers ...HandlerFunc) {
+	n := newNode(method, path, handlers...)
 	if n == nil {
 		return
 	}
@@ -68,8 +68,10 @@ func (r *Router) find(uri string, method string, c Context) {
 
 	if maxScore > 0 {
 		ctx.pnames = n.getPathParam(pathParts)
-		ctx.handler = n.handler
+		ctx.handlers = n.handlers
 		ctx.path = n.path
+	} else {
+		ctx.handlers = append(ctx.handlers, NotFoundHandler)
 	}
 }
 
@@ -90,7 +92,7 @@ func (r *Router) findMaxScore(pathCount int, pathParts []string, method string) 
 	return maxScore, n
 }
 
-func newNode(method string, uri string, h HandlerFunc) *node {
+func newNode(method string, uri string, handlers ...HandlerFunc) *node {
 	cl := getURIPaths(uri)
 	if len(cl) == 0 {
 		return nil
@@ -100,7 +102,7 @@ func newNode(method string, uri string, h HandlerFunc) *node {
 		componentList:     cl,
 		variableArgsCount: 0,
 		hasWildcard:       false,
-		handler:           h,
+		handlers:          handlers,
 		method:            method,
 	}
 	componentLength := len(n.componentList)

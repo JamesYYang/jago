@@ -8,17 +8,45 @@ import (
 
 type (
 	Jago struct {
-		router *Router
+		router           *Router
+		middlewares      []HandlerFunc
+		HTTPErrorHandler HTTPErrorHandler
+		Debug            bool
 	}
 
-	HandlerFunc func(c Context) error
+	HTTPError struct {
+		Code     int         `json:"-"`
+		Message  interface{} `json:"message"`
+		Internal error       `json:"-"` // Stores the error returned by an external dependency
+	}
+
+	HandlerFunc      func(c Context) error
+	HTTPErrorHandler func(error, Context)
 )
+
+func NewHTTPError(code int, message ...interface{}) *HTTPError {
+	he := &HTTPError{Code: code, Message: http.StatusText(code)}
+	if len(message) > 0 {
+		he.Message = message[0]
+	}
+	return he
+}
+
+func (he *HTTPError) Error() string {
+	if he.Internal == nil {
+		return fmt.Sprintf("code=%d, message=%v", he.Code, he.Message)
+	}
+	return fmt.Sprintf("code=%d, message=%v, internal=%v", he.Code, he.Message, he.Internal)
+}
 
 func New() *Jago {
 	log.Printf(banner, Version)
-	return &Jago{
+	j := &Jago{
 		router: newRouter(),
 	}
+	j.HTTPErrorHandler = j.DefaultHTTPErrorHandler
+
+	return j
 }
 
 func (j *Jago) NewContext(r *http.Request, w http.ResponseWriter) Context {
@@ -26,52 +54,63 @@ func (j *Jago) NewContext(r *http.Request, w http.ResponseWriter) Context {
 		request:        r,
 		responseWriter: w,
 		j:              j,
+		hIndex:         -1,
 	}
 }
 
-func (j *Jago) Connect(path string, handler HandlerFunc) {
-	j.Add(http.MethodConnect, path, handler)
+func (j *Jago) Use(middlewares ...HandlerFunc) {
+	j.middlewares = append(j.middlewares, middlewares...)
 }
 
-func (j *Jago) Head(path string, handler HandlerFunc) {
-	j.Add(http.MethodHead, path, handler)
+func (j *Jago) Connect(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodConnect, path, handlers...)
 }
 
-func (j *Jago) Options(path string, handler HandlerFunc) {
-	j.Add(http.MethodOptions, path, handler)
+func (j *Jago) Head(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodHead, path, handlers...)
 }
 
-func (j *Jago) Patch(path string, handler HandlerFunc) {
-	j.Add(http.MethodPatch, path, handler)
+func (j *Jago) Options(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodOptions, path, handlers...)
 }
 
-func (j *Jago) Trace(path string, handler HandlerFunc) {
-	j.Add(http.MethodTrace, path, handler)
+func (j *Jago) Patch(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodPatch, path, handlers...)
 }
 
-func (j *Jago) Get(path string, handler HandlerFunc) {
-	j.Add(http.MethodGet, path, handler)
+func (j *Jago) Trace(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodTrace, path, handlers...)
 }
 
-func (j *Jago) Post(path string, handler HandlerFunc) {
-	j.Add(http.MethodPost, path, handler)
+func (j *Jago) Get(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodGet, path, handlers...)
 }
 
-func (j *Jago) Put(path string, handler HandlerFunc) {
-	j.Add(http.MethodPut, path, handler)
+func (j *Jago) Post(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodPost, path, handlers...)
 }
 
-func (j *Jago) Delete(path string, handler HandlerFunc) {
-	j.Add(http.MethodDelete, path, handler)
+func (j *Jago) Put(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodPut, path, handlers...)
 }
 
-func (j *Jago) Group(prefix string) (g *Group) {
+func (j *Jago) Delete(path string, handlers ...HandlerFunc) {
+	j.Add(http.MethodDelete, path, handlers...)
+}
+
+func (j *Jago) Any(path string, handlers ...HandlerFunc) {
+	j.Add(HttpMethodAny, path, handlers...)
+}
+
+func (j *Jago) Group(prefix string, handlers ...HandlerFunc) (g *Group) {
 	g = &Group{prefix: prefix, j: j}
+	g.Use(handlers...)
 	return g
 }
 
-func (j *Jago) Add(method, path string, handler HandlerFunc) {
-	j.router.add(method, path, handler)
+func (j *Jago) Add(method, path string, handlers ...HandlerFunc) {
+	allHandlers := append(j.middlewares, handlers...)
+	j.router.add(method, path, allHandlers...)
 }
 
 func (j *Jago) findRoute(request *http.Request, c Context) {
@@ -81,16 +120,40 @@ func (j *Jago) findRoute(request *http.Request, c Context) {
 	j.router.find(uri, method, c)
 }
 
+func (j *Jago) DefaultHTTPErrorHandler(err error, c Context) {
+	he, ok := err.(*HTTPError)
+	if ok {
+		if he.Internal != nil {
+			if herr, ok := he.Internal.(*HTTPError); ok {
+				he = herr
+			}
+		}
+	} else {
+		he = &HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: http.StatusText(http.StatusInternalServerError),
+		}
+	}
+
+	code := he.Code
+	message := he.Message
+
+	if c.Request().Method == http.MethodHead {
+		err = c.NoContent(he.Code)
+	} else {
+		err = c.JSON(code, message)
+	}
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func (j *Jago) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	log.Println("Jago serveHTTP")
 	ctx := j.NewContext(request, response)
 
 	j.findRoute(request, ctx)
-
-	h := ctx.Handler()
-	if h != nil {
-		h(ctx)
-	} else {
-		ctx.String(http.StatusNotFound, fmt.Sprintf("your path: %s not found", request.URL))
+	if err := ctx.Next(); err != nil {
+		j.HTTPErrorHandler(err, ctx)
 	}
 }
