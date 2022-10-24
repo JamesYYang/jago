@@ -1,6 +1,9 @@
 package jago
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
 
 // HTTP methods
 // NOTE: Deprecated, please use the stdlib constants directly instead.
@@ -136,6 +139,7 @@ var (
 	ErrInternalServerError         = NewHTTPError(http.StatusInternalServerError)
 	ErrRequestTimeout              = NewHTTPError(http.StatusRequestTimeout)
 	ErrServiceUnavailable          = NewHTTPError(http.StatusServiceUnavailable)
+	ErrInvalidRedirectCode         = errors.New("invalid redirect status code")
 
 	NotFoundHandler = func(c Context) error {
 		return ErrNotFound

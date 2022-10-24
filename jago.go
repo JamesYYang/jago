@@ -15,9 +15,8 @@ type (
 	}
 
 	HTTPError struct {
-		Code     int         `json:"-"`
-		Message  interface{} `json:"message"`
-		Internal error       `json:"-"` // Stores the error returned by an external dependency
+		Code    int         `json:"-"`
+		Message interface{} `json:"message"`
 	}
 
 	HandlerFunc      func(c Context) error
@@ -33,10 +32,7 @@ func NewHTTPError(code int, message ...interface{}) *HTTPError {
 }
 
 func (he *HTTPError) Error() string {
-	if he.Internal == nil {
-		return fmt.Sprintf("code=%d, message=%v", he.Code, he.Message)
-	}
-	return fmt.Sprintf("code=%d, message=%v, internal=%v", he.Code, he.Message, he.Internal)
+	return fmt.Sprintf("code=%d, message=%v", he.Code, he.Message)
 }
 
 func New() *Jago {
@@ -51,10 +47,10 @@ func New() *Jago {
 
 func (j *Jago) NewContext(r *http.Request, w http.ResponseWriter) Context {
 	return &context{
-		request:        r,
-		responseWriter: w,
-		j:              j,
-		hIndex:         -1,
+		request:  r,
+		response: NewResponse(w),
+		j:        j,
+		hIndex:   -1,
 	}
 }
 
@@ -122,13 +118,7 @@ func (j *Jago) findRoute(request *http.Request, c Context) {
 
 func (j *Jago) DefaultHTTPErrorHandler(err error, c Context) {
 	he, ok := err.(*HTTPError)
-	if ok {
-		if he.Internal != nil {
-			if herr, ok := he.Internal.(*HTTPError); ok {
-				he = herr
-			}
-		}
-	} else {
+	if !ok {
 		he = &HTTPError{
 			Code:    http.StatusInternalServerError,
 			Message: http.StatusText(http.StatusInternalServerError),
