@@ -1,12 +1,18 @@
 package jago
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"io"
 	"strings"
+
+	lru "github.com/hashicorp/golang-lru"
 )
 
 type (
 	Router struct {
 		routes map[int][]*node
+		cache  *lru.Cache
 	}
 
 	node struct {
@@ -25,6 +31,7 @@ func newRouter() *Router {
 	r := &Router{
 		routes: map[int][]*node{},
 	}
+	r.cache, _ = lru.New(100)
 
 	for _, i := range []int{1, 2, 3, 4, 5, 6} {
 		r.routes[i] = nil
@@ -53,17 +60,25 @@ func (r *Router) add(method, path string, handlers ...HandlerFunc) {
 func (r *Router) find(uri string, method string, c Context) {
 	ctx := c.(*context)
 
+	var maxScore int
+	var n *node
+	cacheKey := hash(uri)
 	pathParts := getURIPaths(uri)
-	pathCount := len(pathParts)
-	if pathCount > 5 {
-		pathCount = 5
-	}
 
-	maxScore, n := r.findMaxScore(pathCount, pathParts, method)
-
-	if maxScore == 0 {
-		pathCount = 6
+	maxScore, n = r.findNodeFromCache(cacheKey)
+	if n == nil {
+		pathCount := len(pathParts)
+		if pathCount > 5 {
+			pathCount = 5
+		}
 		maxScore, n = r.findMaxScore(pathCount, pathParts, method)
+		if maxScore == 0 {
+			pathCount = 6
+			maxScore, n = r.findMaxScore(pathCount, pathParts, method)
+		}
+		if maxScore > 0 {
+			r.setNode2Cache(cacheKey, n)
+		}
 	}
 
 	if maxScore > 0 {
@@ -73,6 +88,18 @@ func (r *Router) find(uri string, method string, c Context) {
 	} else {
 		ctx.handlers = append(ctx.handlers, NotFoundHandler)
 	}
+}
+
+func (r *Router) findNodeFromCache(cacheKey string) (int, *node) {
+	if v, ok := r.cache.Get(cacheKey); ok {
+		return 1, v.(*node)
+	} else {
+		return 0, nil
+	}
+}
+
+func (r *Router) setNode2Cache(cacheKey string, n *node) {
+	r.cache.Add(cacheKey, n)
 }
 
 func (r *Router) findMaxScore(pathCount int, pathParts []string, method string) (int, *node) {
@@ -179,4 +206,10 @@ func max(x, y int) int {
 		return y
 	}
 	return x
+}
+
+func hash(s string) string {
+	h := md5.New()
+	io.WriteString(h, s)
+	return hex.EncodeToString(h.Sum(nil))
 }
