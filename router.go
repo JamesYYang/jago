@@ -6,13 +6,13 @@ import (
 	"io"
 	"strings"
 
-	lru "github.com/hashicorp/golang-lru"
+	tlcache "github.com/JamesYYang/go-ttl-lru"
 )
 
 type (
 	Router struct {
 		routes map[int][]*node
-		cache  *lru.Cache
+		cache  *tlcache.Cache
 	}
 
 	node struct {
@@ -31,7 +31,7 @@ func newRouter() *Router {
 	r := &Router{
 		routes: map[int][]*node{},
 	}
-	r.cache, _ = lru.New(100)
+	r.cache = tlcache.NewLRUCache(100)
 
 	for _, i := range []int{1, 2, 3, 4, 5, 6} {
 		r.routes[i] = nil
