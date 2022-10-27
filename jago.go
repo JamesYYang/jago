@@ -139,7 +139,6 @@ func (j *Jago) DefaultHTTPErrorHandler(err error, c Context) {
 }
 
 func (j *Jago) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	log.Println("Jago serveHTTP")
 	ctx := j.NewContext(request, response)
 
 	j.findRoute(request, ctx)
