@@ -11,7 +11,8 @@ import (
 
 type (
 	Router struct {
-		routes map[string]map[int][]*node
+		// routes map[string]map[int][]*node
+		routes *Trie
 		cache  *tlcache.Cache
 	}
 
@@ -29,7 +30,8 @@ type (
 
 func newRouter() *Router {
 	r := &Router{
-		routes: make(map[string]map[int][]*node),
+		routes: newTrie(),
+		// routes: make(map[string]map[int][]*node),
 	}
 	r.cache = tlcache.NewLRUCache(100)
 
@@ -41,88 +43,37 @@ func newRouter() *Router {
 }
 
 func (r *Router) add(method, path string, handlers ...HandlerFunc) {
-	n := newNode(method, path, handlers...)
-	if n == nil {
-		return
-	}
-
-	pathCount := len(n.componentList)
-	pathKey := strings.ToLower(n.literalsToMatch[0])
-	if pathKey == "" {
-		pathKey = "#dynamic#"
-	}
-	pathTree, ok := r.routes[pathKey]
-	if !ok {
-		newTree := make(map[int][]*node)
-		for _, i := range []int{1, 2, 3, 4, 5, 6} {
-			newTree[i] = nil
-		}
-		r.routes[pathKey] = newTree
-		pathTree = r.routes[pathKey]
-	}
-
-	if n.hasWildcard {
-		pathTree[6] = append(pathTree[6], n)
-	} else {
-		if pathCount > 5 {
-			pathCount = 5
-		}
-		pathTree[pathCount] = append(pathTree[pathCount], n)
-	}
+	r.routes.add(method, path, handlers...)
 }
 
-func (r *Router) findRoute(pathParts []string, method string) (maxScore int, n *node) {
-
-	if n == nil {
-		pathCount := len(pathParts)
-		if pathCount > 5 {
-			pathCount = 5
-		}
-
-		pathKey := strings.ToLower(pathParts[0])
-		maxScore, n = r.findMaxScore(pathKey, pathCount, pathParts, method)
-
-		if maxScore == 0 {
-			maxScore, n = r.findMaxScore("#dynamic#", pathCount, pathParts, method)
-		}
-
-		if maxScore == 0 {
-			pathCount = 6
-			maxScore, n = r.findMaxScore(pathKey, pathCount, pathParts, method)
-		}
-
-		if maxScore == 0 {
-			pathCount = 6
-			maxScore, n = r.findMaxScore("#dynamic#", pathCount, pathParts, method)
-		}
-
-	}
-	return
+func (r *Router) PrintTree() {
+	r.routes.printTree()
 }
 
 func (r *Router) find(uri string, method string, c Context) {
-	ctx := c.(*context)
+	// ctx := c.(*context)
 
-	// cacheKey := hash(uri)
+	// // cacheKey := hash(uri)
 
-	// maxScore, n = r.findNodeFromCache(cacheKey)
+	// // maxScore, n = r.findNodeFromCache(cacheKey)
 
-	pathParts := getURIPaths(uri)
-	maxScore, n := r.findRoute(pathParts, method)
+	// pathParts := getURIPaths(uri)
+	// maxScore, n := r.findRoute(pathParts, method)
+
+	// // if maxScore > 0 {
+	// // 	r.setNode2Cache(cacheKey, n)
+	// // }
 
 	// if maxScore > 0 {
-	// 	r.setNode2Cache(cacheKey, n)
+	// 	ctx.pnames = n.getPathParam(pathParts)
+	// 	ctx.handlers = n.handlers
+	// 	ctx.path = n.path
+	// } else {
+	// 	ctx.handlers = append(ctx.handlers, NotFoundHandler)
 	// }
-
-	if maxScore > 0 {
-		ctx.pnames = n.getPathParam(pathParts)
-		ctx.handlers = n.handlers
-		ctx.path = n.path
-	} else {
-		ctx.handlers = append(ctx.handlers, NotFoundHandler)
-	}
 }
 
+/*
 func (r *Router) findNodeFromCache(cacheKey string) (int, *node) {
 	if v, ok := r.cache.Get(cacheKey); ok {
 		return 1, v.(*node)
@@ -221,6 +172,8 @@ func (n *node) getPathParam(pathParts []string) map[string]string {
 	}
 	return pathParam
 }
+
+*/
 
 func getURIPaths(url string) []string {
 	paths := strings.Split(url, "/")

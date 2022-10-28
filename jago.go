@@ -142,7 +142,8 @@ func (j *Jago) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	ctx := j.NewContext(request, response)
 
 	j.findRoute(request, ctx)
-	if err := ctx.Next(); err != nil {
-		j.HTTPErrorHandler(err, ctx)
-	}
+	// if err := ctx.Next(); err != nil {
+	// 	j.HTTPErrorHandler(err, ctx)
+	// }
+	j.router.PrintTree()
 }
