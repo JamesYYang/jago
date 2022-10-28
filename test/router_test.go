@@ -1,5 +1,31 @@
 package test
 
+/*
+Array
+cpu: Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz
+BenchmarkJagoStatic-8               5368            218774 ns/op           48526 B/op       1143 allocs/op
+BenchmarkJagoGitHubAPI-8            2821            414983 ns/op          133150 B/op       1794 allocs/op
+BenchmarkJagoGplusAPI-8            71121             18115 ns/op            7635 B/op        108 allocs/op
+BenchmarkJagoParseAPI-8            42877             30929 ns/op           13924 B/op        218 allocs/op
+
+One Level Tree
+cpu: Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz
+BenchmarkJagoStatic-8               6501            165238 ns/op           47945 B/op       1114 allocs/op
+BenchmarkJagoGitHubAPI-8            3331            324038 ns/op          132919 B/op       1794 allocs/op
+BenchmarkJagoGplusAPI-8           115554             10472 ns/op            7648 B/op        108 allocs/op
+BenchmarkJagoParseAPI-8            46396             32629 ns/op           13909 B/op        218 allocs/op
+
+cpu: Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz
+BenchmarkEchoStatic-8              33364             43531 ns/op            2264 B/op        157 allocs/op
+BenchmarkEchoGitHubAPI-8           19813             61690 ns/op            2477 B/op        203 allocs/op
+BenchmarkEchoGplusAPI-8           413618              3039 ns/op             185 B/op         13 allocs/op
+BenchmarkEchoParseAPI-8           259466              4991 ns/op             337 B/op         26 allocs/op
+BenchmarkGinStatic-8               25494             46172 ns/op           11967 B/op        314 allocs/op
+BenchmarkGinGitHubAPI-8            18987             61844 ns/op           15508 B/op        406 allocs/op
+BenchmarkGinGplusAPI-8            333837              3490 ns/op            1036 B/op         26 allocs/op
+BenchmarkGinParseAPI-8            180140              6541 ns/op            2058 B/op         52 allocs/op
+*/
+
 import (
 	"net/http"
 	"net/http/httptest"
@@ -17,7 +43,7 @@ type (
 
 var (
 	static = []*Route{
-		{"GET", "/"},
+		// {"GET", "/"},
 		{"GET", "/cmd.html"},
 		{"GET", "/code.html"},
 		{"GET", "/contrib.html"},
