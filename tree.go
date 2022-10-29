@@ -33,8 +33,6 @@ type (
 	}
 )
 
-const bestMatchScore = 1001
-
 func newTrie() *Trie {
 	return &Trie{
 		root: &TreeNode{

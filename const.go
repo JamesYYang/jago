@@ -123,6 +123,8 @@ const (
          /___/  
 Simple Go Web Framework
 Version %s
+____\O________________________________O/_______
+    /O                                O\
 `
 )
 

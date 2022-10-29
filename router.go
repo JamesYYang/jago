@@ -1,15 +1,11 @@
 package jago
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"io"
 	"strings"
 )
 
 type (
 	Router struct {
-		// routes map[string]map[int][]*node
 		routes *Trie
 	}
 )
@@ -66,10 +62,4 @@ func max(x, y int) int {
 		return y
 	}
 	return x
-}
-
-func hash(s string) string {
-	h := md5.New()
-	io.WriteString(h, s)
-	return hex.EncodeToString(h.Sum(nil))
 }
