@@ -15,11 +15,28 @@ BenchmarkJagoGitHubAPI-8            3331            324038 ns/op          132919
 BenchmarkJagoGplusAPI-8           115554             10472 ns/op            7648 B/op        108 allocs/op
 BenchmarkJagoParseAPI-8            46396             32629 ns/op           13909 B/op        218 allocs/op
 
+Tree
+cpu: Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz
+BenchmarkJagoStatic-8              12871             92013 ns/op           47775 B/op       1094 allocs/op
+BenchmarkJagoGitHubAPI-8            3350            299073 ns/op          175128 B/op       2703 allocs/op
+BenchmarkJagoGplusAPI-8            75843             18941 ns/op            9767 B/op        168 allocs/op
+BenchmarkJagoParseAPI-8            37186             30077 ns/op           17602 B/op        320 allocs/op
+
+BeegoMux
+cpu: Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz
+BenchmarkMuxStatic-8               35121             35218 ns/op           15182 B/op        314 allocs/op
+BenchmarkMuxGitHubAPI-8            10000            104671 ns/op          123348 B/op       1074 allocs/op
+BenchmarkMuxGplusAPI-8            215536              7596 ns/op            8286 B/op         70 allocs/op
+BenchmarkMuxParseAPI-8            104617              9879 ns/op           12771 B/op        116 allocs/op
+
+Eho
 cpu: Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz
 BenchmarkEchoStatic-8              33364             43531 ns/op            2264 B/op        157 allocs/op
 BenchmarkEchoGitHubAPI-8           19813             61690 ns/op            2477 B/op        203 allocs/op
 BenchmarkEchoGplusAPI-8           413618              3039 ns/op             185 B/op         13 allocs/op
 BenchmarkEchoParseAPI-8           259466              4991 ns/op             337 B/op         26 allocs/op
+
+Gin
 BenchmarkGinStatic-8               25494             46172 ns/op           11967 B/op        314 allocs/op
 BenchmarkGinGitHubAPI-8            18987             61844 ns/op           15508 B/op        406 allocs/op
 BenchmarkGinGplusAPI-8            333837              3490 ns/op            1036 B/op         26 allocs/op
@@ -43,7 +60,7 @@ type (
 
 var (
 	static = []*Route{
-		// {"GET", "/"},
+		{"GET", "/"},
 		{"GET", "/cmd.html"},
 		{"GET", "/code.html"},
 		{"GET", "/contrib.html"},
@@ -552,104 +569,6 @@ func benchmarkRoutes(b *testing.B, router http.Handler, routes []*Route) {
 		}
 	}
 }
-
-// func loadEchoRoutes(e *echo.Echo, routes []*Route) {
-// 	for _, r := range routes {
-// 		switch r.Method {
-// 		case "GET":
-// 			e.GET(r.Path, echoHandler(r.Method, r.Path))
-// 		case "POST":
-// 			e.POST(r.Path, echoHandler(r.Method, r.Path))
-// 		case "PATCH":
-// 			e.PATCH(r.Path, echoHandler(r.Method, r.Path))
-// 		case "PUT":
-// 			e.PUT(r.Path, echoHandler(r.Method, r.Path))
-// 		case "DELETE":
-// 			e.DELETE(r.Path, echoHandler(r.Method, r.Path))
-// 		}
-// 	}
-// }
-
-// func echoHandler(method, path string) echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		return c.String(http.StatusOK, "OK")
-// 	}
-// }
-
-// func BenchmarkEchoStatic(b *testing.B) {
-// 	e := echo.New()
-// 	loadEchoRoutes(e, static)
-// 	benchmarkRoutes(b, e, static)
-// }
-
-// func BenchmarkEchoGitHubAPI(b *testing.B) {
-// 	e := echo.New()
-// 	loadEchoRoutes(e, githubAPI)
-// 	benchmarkRoutes(b, e, githubAPI)
-// }
-
-// func BenchmarkEchoGplusAPI(b *testing.B) {
-// 	e := echo.New()
-// 	loadEchoRoutes(e, gplusAPI)
-// 	benchmarkRoutes(b, e, gplusAPI)
-// }
-
-// func BenchmarkEchoParseAPI(b *testing.B) {
-// 	e := echo.New()
-// 	loadEchoRoutes(e, parseAPI)
-// 	benchmarkRoutes(b, e, parseAPI)
-// }
-
-// func loadGinRoutes(g *gin.Engine, routes []*Route) {
-// 	for _, r := range routes {
-// 		switch r.Method {
-// 		case "GET":
-// 			g.GET(r.Path, ginHandler(r.Method, r.Path))
-// 		case "POST":
-// 			g.POST(r.Path, ginHandler(r.Method, r.Path))
-// 		case "PATCH":
-// 			g.PATCH(r.Path, ginHandler(r.Method, r.Path))
-// 		case "PUT":
-// 			g.PUT(r.Path, ginHandler(r.Method, r.Path))
-// 		case "DELETE":
-// 			g.DELETE(r.Path, ginHandler(r.Method, r.Path))
-// 		}
-// 	}
-// }
-
-// func ginHandler(method, path string) gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		c.String(http.StatusOK, "OK")
-// 	}
-// }
-
-// func BenchmarkGinStatic(b *testing.B) {
-// 	gin.SetMode(gin.ReleaseMode)
-// 	g := gin.New()
-// 	loadGinRoutes(g, static)
-// 	benchmarkRoutes(b, g, static)
-// }
-
-// func BenchmarkGinGitHubAPI(b *testing.B) {
-// 	gin.SetMode(gin.ReleaseMode)
-// 	g := gin.New()
-// 	loadGinRoutes(g, githubAPI)
-// 	benchmarkRoutes(b, g, githubAPI)
-// }
-
-// func BenchmarkGinGplusAPI(b *testing.B) {
-// 	gin.SetMode(gin.ReleaseMode)
-// 	g := gin.New()
-// 	loadGinRoutes(g, gplusAPI)
-// 	benchmarkRoutes(b, g, gplusAPI)
-// }
-
-// func BenchmarkGinParseAPI(b *testing.B) {
-// 	gin.SetMode(gin.ReleaseMode)
-// 	g := gin.New()
-// 	loadGinRoutes(g, parseAPI)
-// 	benchmarkRoutes(b, g, parseAPI)
-// }
 
 func loadJagoRoutes(g *jago.Jago, routes []*Route) {
 	for _, r := range routes {
