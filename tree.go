@@ -186,7 +186,7 @@ func (t *Trie) find(uri, method string) (maxScore int, node *TreeNode) {
 	matchNode(t.root, method, pathParts, matched)
 
 	for _, n := range matched.results {
-		// log.Printf("uri: %s, matched node: %s", uri, n.path)
+		// log.Printf("uri: %s, matched node: %s -- score: %d", uri, n.path, n.score)
 		if n.score > maxScore {
 			if _, ok := n.handlers[method]; ok {
 				maxScore = n.score
@@ -206,6 +206,8 @@ func matchNode(parent *TreeNode, method string, pathParts []string, m *Mached) {
 		if n, ok := parent.segChildren[segment]; ok {
 			if n.leaf {
 				m.results = append(m.results, n)
+			} else if n.wildcardChild != nil && n.wildcardChild.leaf {
+				m.results = append(m.results, n.wildcardChild)
 			}
 		}
 

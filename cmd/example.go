@@ -510,6 +510,7 @@ var complexAPI = []*Route{
 	{"GET", "/people/*"},
 	{"GET", "/people/:userId/admin/collection"},
 	{"GET", "/people/:userId/"},
+	{"GET", "/people/:userId/test/*"},
 	{"GET", "/people/guest/:name/:address"},
 }
 
