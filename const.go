@@ -113,7 +113,7 @@ const (
 
 	HttpMethodAny = "ANY"
 
-	Version = "0.0.1"
+	Version = "0.0.3"
 	// http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=Jago
 	banner = ` 
      __            

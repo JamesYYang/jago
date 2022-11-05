@@ -36,7 +36,7 @@ func (he *HTTPError) Error() string {
 }
 
 func New() *Jago {
-	// log.Printf(banner, Version)
+	log.Printf(banner, Version)
 	j := &Jago{
 		router: newRouter(),
 	}
