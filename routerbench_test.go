@@ -1,4 +1,4 @@
-package test
+package jago
 
 /*
 Array
@@ -47,8 +47,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/JamesYYang/jago"
 )
 
 type (
@@ -513,6 +511,8 @@ var (
 		{"GET", "/1/classes/:className"},
 		{"DELETE", "/1/classes/:className/:objectId"},
 
+		{"GET", "/1/:type/Category/Item"},
+
 		// Users
 		{"POST", "/1/users"},
 		{"GET", "/1/login"},
@@ -523,11 +523,11 @@ var (
 		{"POST", "/1/requestPasswordReset"},
 
 		// Roles
-		{"POST", "/1/roles"},
-		{"GET", "/1/roles/:objectId"},
-		{"PUT", "/1/roles/:objectId"},
-		{"GET", "/1/roles"},
-		{"DELETE", "/1/roles/:objectId"},
+		{"POST", "/1/Roles"},
+		{"GET", "/1/Roles/:objectId"},
+		{"PUT", "/1/Roles/:objectId"},
+		{"GET", "/1/Roles"},
+		{"DELETE", "/1/Roles/:objectId"},
 
 		// Files
 		{"POST", "/1/files/:fileName"},
@@ -546,14 +546,9 @@ var (
 		{"DELETE", "/1/installations/:objectId"},
 
 		// Cloud Functions
-		{"POST", "/1/functions"},
+		{"GET", "/1/functions/*"},
 	}
-
-	apis = [][]*Route{githubAPI, gplusAPI, parseAPI}
 )
-
-func testRoutes() {
-}
 
 func benchmarkRoutes(b *testing.B, router http.Handler, routes []*Route) {
 	b.ReportAllocs()
@@ -570,7 +565,7 @@ func benchmarkRoutes(b *testing.B, router http.Handler, routes []*Route) {
 	}
 }
 
-func loadJagoRoutes(g *jago.Jago, routes []*Route) {
+func loadJagoRoutes(g *Jago, routes []*Route) {
 	for _, r := range routes {
 		switch r.Method {
 		case "GET":
@@ -585,34 +580,35 @@ func loadJagoRoutes(g *jago.Jago, routes []*Route) {
 			g.Delete(r.Path, jagoHandler(r.Method, r.Path))
 		}
 	}
+	g.PrintRouter()
 }
 
-func jagoHandler(method, path string) jago.HandlerFunc {
-	return func(c jago.Context) error {
+func jagoHandler(method, path string) HandlerFunc {
+	return func(c Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 }
 
 func BenchmarkJagoStatic(b *testing.B) {
-	g := jago.New()
+	g := New()
 	loadJagoRoutes(g, static)
 	benchmarkRoutes(b, g, static)
 }
 
 func BenchmarkJagoGitHubAPI(b *testing.B) {
-	g := jago.New()
+	g := New()
 	loadJagoRoutes(g, githubAPI)
 	benchmarkRoutes(b, g, githubAPI)
 }
 
 func BenchmarkJagoGplusAPI(b *testing.B) {
-	g := jago.New()
+	g := New()
 	loadJagoRoutes(g, gplusAPI)
 	benchmarkRoutes(b, g, gplusAPI)
 }
 
 func BenchmarkJagoParseAPI(b *testing.B) {
-	g := jago.New()
+	g := New()
 	loadJagoRoutes(g, parseAPI)
 	benchmarkRoutes(b, g, parseAPI)
 }

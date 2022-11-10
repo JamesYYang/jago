@@ -28,6 +28,7 @@ func (r *Router) PrintTree() {
 
 func (r *Router) find(uri string, method string, c Context) {
 	ctx := c.(*context)
+	uri = strings.TrimSuffix(uri, "/")
 	pathParts := getURIPaths(uri)
 	maxScore, n := r.routes.find(uri, method)
 

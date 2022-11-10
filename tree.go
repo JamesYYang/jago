@@ -45,10 +45,11 @@ func newTrie() *Trie {
 }
 
 func (t *Trie) add(method, pattern string, handlers ...HandlerFunc) {
-	pattern = strings.ToLower(pattern)
+	// pattern = strings.ToLower(pattern)
 	if pattern == "/" {
 		pattern = "/*"
 	}
+	pattern = strings.TrimSuffix(pattern, "/")
 	segments := getURIPaths(pattern)
 	if len(segments) == 0 {
 		return
@@ -61,7 +62,7 @@ func (t *Trie) add(method, pattern string, handlers ...HandlerFunc) {
 			segment:     pattern,
 			handlers:    make(map[string][]HandlerFunc),
 		}
-		t.staticChildren[pattern] = node
+		t.staticChildren[strings.ToLower(pattern)] = node
 	} else {
 		node = parsePattern(t.root, segments)
 	}
@@ -128,7 +129,7 @@ func initLeafNode(node *TreeNode, method, pattern string, segments []string, han
 }
 
 func parsePattern(parent *TreeNode, segments []string) *TreeNode {
-	segment := segments[0]
+	segment := strings.ToLower(segments[0])
 	segments = segments[1:]
 	child := parseSegment(parent, segment)
 	if len(segments) == 0 {
@@ -166,12 +167,12 @@ func parseSegment(parent *TreeNode, segment string) *TreeNode {
 }
 
 func (t *Trie) find(uri, method string) (maxScore int, node *TreeNode) {
-	uri = strings.ToLower(uri)
+	lowerUri := strings.ToLower(uri)
 	if uri == "/" {
 		uri = "/*"
 	}
 
-	if n, ok := t.staticChildren[uri]; ok {
+	if n, ok := t.staticChildren[lowerUri]; ok {
 		if _, ok := n.handlers[method]; ok {
 			maxScore = n.score
 			node = n
@@ -198,11 +199,10 @@ func (t *Trie) find(uri, method string) (maxScore int, node *TreeNode) {
 }
 
 func matchNode(parent *TreeNode, method string, pathParts []string, m *Mached) {
-	segment := pathParts[0]
+	segment := strings.ToLower(pathParts[0])
 	segments := pathParts[1:]
 
 	if len(segments) == 0 {
-
 		if n, ok := parent.segChildren[segment]; ok {
 			if n.leaf {
 				m.results = append(m.results, n)
@@ -210,31 +210,25 @@ func matchNode(parent *TreeNode, method string, pathParts []string, m *Mached) {
 				m.results = append(m.results, n.wildcardChild)
 			}
 		}
-
 		for _, n := range parent.paramChildren {
 			if n.leaf {
 				m.results = append(m.results, n)
 			}
 		}
-
 		if parent.wildcardChild != nil {
 			m.results = append(m.results, parent.wildcardChild)
 		}
 
 	} else {
-
 		if n, ok := parent.segChildren[segment]; ok {
 			matchNode(n, method, segments, m)
 		}
-
 		for _, n := range parent.paramChildren {
 			matchNode(n, method, segments, m)
 		}
-
 		if parent.wildcardChild != nil {
 			m.results = append(m.results, parent.wildcardChild)
 		}
-
 	}
 }
 
